@@ -1,0 +1,34 @@
+<head>
+  <!-- This is the title of my app -->
+  <title>My Chatbot</title>
+</head>
+<body>
+  <center>
+    {{#if checkCurrentPage "frontPage"}}
+        {{> frontPage}}
+    {{else}}
+        {{> mainSection}}
+        {{> formSection}}
+    {{/if}}
+  </center>
+</body>
+
+<template name = "frontPage">
+  <h1>Welcome!</h1>
+  <input type = "button" id = "enterMain" value = "Enter" />
+</template>
+
+<template name = "mainSection">
+  <h1>
+    <a href = "https://en.wikipedia.org/wiki/ELIZA" target = "_blank">This is my ELIZA!</a>
+  </h1>
+  <textarea id = "conversationBox" rows = "20" cols = "80" readonly>{{getConversation}}</textarea><br/>
+</template>
+
+<template name = "formSection">
+  <form>
+    <input type = "text" id = "myMsg" size = "80" placeholder = "Please enter your message here..." /><br/>
+    <input type = "submit" class = "buttons" id = "submitMsg" value = "Submit" />
+    <input type = "reset" class = "buttons" id = "resetMsg" value = "Reset" />
+  </form>
+</template>
