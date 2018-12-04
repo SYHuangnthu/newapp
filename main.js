@@ -1,58 +1,102 @@
-var profileDataDB = new Mongo.Collection("profileData");//建立一個變數=新建立的小資料庫
-var conversationLogDB = new Mongo.Collection("conversationLog");
+/*
+    ELIZA Meteor Template Created by CHEN, Tsung-Ying
+    for the NTHU course "Basic Web Linguistic Application Development"
+    Last Updated on Nov 27, 2018
+*/
 
-var stupidResponse = function(msg) {
-	return "What is "+msg+"?";
+/*var str = "String.";
+var num = 6;
+var nums = [1,2,3,4,5,6];
+var thisAFunction = function(x) {
+  console.log(x);
 };
+var obj = {
+  name: "TY Chen",
+  affiliation: "NTHU",
+  gender: "Male"
+};
+thisAFunction(
+  {
+    field1: "Test",
+    field2: "Hello",
+    field3: "Yeah!"
+  }
+);*/
 
-Meteor.startup(function() {
-	//profileDataDB.remove({});//清空資料庫(放個空物件=沒有條件的清空
-	conversationLogDB.remove({});
-	let searchResults = conversationLogDB.find();
-	if(searchResults.fetch().length < 1){
-		conversationLogDB.insert(
-			{
-				source: "ELIZA",
-				msg: "How are you doing",
-				time: new Date()
-			}
-		);
-	}
-	console.log(conversationLogDB.find().fetch());
+var conversationLogDB = new Mongo.Collection("conversationLog");
+var conversationLog = new ReactiveVar("ELIZA: How are you doing?");
+
+Session.setDefault("currentPage", "frontPage");
+Session.setDefault("userSession", "");
+
+Meteor.subscribe("userConversation", Session.get("userSession"));
+Template.body.helpers({
+  checkCurrentPage: function(page) {
+    return Session.equals("currentPage", page);
+  }
 });
 
-Meteor.methods({
-	msgReceiver: function(msg) {
-		conversationLogDB.insert(
-			{
-				source: "You",
-				msg: msg,//左邊是欄位名稱,右邊是收到的變數
-				time: new Date,//取得伺服器目前時間
-			}
-		);//在logDB放入msg
-		let ELIZAResponse = stupidResponse(msg);
-		conversationLogDB.insert(
-			{
-				source: "ELIZA",
-				msg: ELIZAResponse,//左邊是欄位名稱,右邊是收到的變數
-				time: new Date,//取得伺服器目前時間
-			}
-		);
-		//console.log(conversationLogDB.find().fetch());//find無條件找出+fetch變陣列
-		//return stupidResponse(msg);
-		return;
-	},
-	serverFunc: function(data1, data2) {
-		console.log(data1);
-		console.log(data2);
-		return "done!";
-	},
-	addNumbers: function(nums) {
-		let result = 0;
-		for(let index=0 ; index<nums.length ; index++) {
-			result = result + nums[index];
-		}
-		//console.log(result);
-		return result;
-	}
+Template.mainSection.helpers({
+  getConversation: function() {
+    let dbData = conversationLogDB.find({}, {sort: {time: 1}});
+    dbData = dbData.fetch();
+    let conversationLog = "";
+    for(let index=0 ; index<dbData.length ; index++) {
+      let msgData = dbData[index];
+      conversationLog = conversationLog+msgData.source+": ";
+      conversationLog = conversationLog+msgData.msg+"\n";
+    }
+    return conversationLog;
+  }
 });
+
+Template.formSection.events({
+  "click #submitMsg": function(event) {
+    event.preventDefault();
+    let myMsgObj = document.getElementById("myMsg");
+    let myMsg = myMsgObj.value;
+    Meteor.call("msgReceiver", myMsg, function(error, result){
+    if(error){
+
+    }
+    else if(result === "Full!!"){
+    	alert("The database is full!");
+    }
+    else{
+    	
+    }
+  }),
+  myMsgObj.value = "";
+},
+  "click #resetMsg": function() {
+     //conversationLog.set("ELIZA: How are you doing?");
+     Meteor.call("resetMsg");
+  }
+});
+
+Template.frontPage.events({
+  "click #enterMain": function() {
+  	let username = document.getElementById("username").value;
+  	Meteor.call("setUser", username, function(error, result){
+  		if(error){
+  			alert("Username cannot have any space!")
+  		}
+  		else{
+  			Session.set("userSession", username);
+ 		 	Session.set("currentPage", "home");
+  		}
+  	});
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
